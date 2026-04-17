@@ -1,0 +1,168 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-md);
+  padding: var(--gap-md) var(--gap-lg);
+  border-bottom: var(--border);
+  flex-shrink: 0;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: var(--color-text-dim);
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.backBtn:hover {
+  color: var(--color-text);
+}
+
+.stepLabel {
+  font-size: 9px;
+  color: var(--color-accent);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--gap-lg);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--gap-md);
+}
+
+.skillGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--gap-sm);
+}
+
+.skillHint {
+  font-size: 8px;
+  color: var(--color-text-dim);
+  margin-bottom: var(--gap-md);
+}
+
+.card {
+  background: var(--color-bg-panel);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: var(--gap-md);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+  transition: border-color 0.1s, background 0.1s;
+}
+
+.card:hover {
+  border-color: var(--color-border-bright);
+  background: var(--color-bg-raised);
+}
+
+.card.selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-dim);
+}
+
+.skillCard {
+  composes: card;
+  padding: var(--gap-sm) var(--gap-md);
+}
+
+.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.disabled:hover {
+  border-color: var(--color-border);
+  background: var(--color-bg-panel);
+}
+
+.cardName {
+  font-size: 9px;
+  color: var(--color-text-bright);
+}
+
+.cardTagline {
+  font-size: 8px;
+  color: var(--color-accent);
+  font-style: italic;
+}
+
+.cardDesc {
+  font-size: 7.5px;
+  color: var(--color-text-dim);
+  line-height: 1.9;
+}
+
+.effectList {
+  list-style: none;
+  font-size: 7.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.passive {
+  font-size: 7px;
+  color: var(--color-purple);
+  border-top: var(--border);
+  padding-top: var(--gap-xs);
+  margin-top: var(--gap-xs);
+}
+
+.ideaMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 7.5px;
+  color: var(--color-text-dim);
+}
+
+.confirm {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+}
+
+.confirmRow {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--gap-sm) 0;
+  border-bottom: var(--border);
+  font-size: 9px;
+  gap: var(--gap-md);
+}
+
+.startPrompt {
+  font-size: 9px;
+  color: var(--color-text-dim);
+  text-align: center;
+  margin-top: var(--gap-lg);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--gap-md) var(--gap-lg);
+  border-top: var(--border);
+  flex-shrink: 0;
+}

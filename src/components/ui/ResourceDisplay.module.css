@@ -1,0 +1,48 @@
+.resource {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 80px;
+}
+
+.label {
+  font-size: 7px;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.value {
+  font-size: 11px;
+  color: var(--color-text-bright);
+  transition: color 0.1s;
+}
+
+.green  { color: var(--color-green); }
+.yellow { color: var(--color-yellow); }
+.red    { color: var(--color-red); }
+.accent { color: var(--color-accent); }
+.purple { color: var(--color-purple); }
+.warning { color: var(--color-red) !important; animation: pulse 1s infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+.flashUp {
+  animation: flashGreen 0.6s ease-out;
+}
+.flashDown {
+  animation: flashRed 0.6s ease-out;
+}
+
+@keyframes flashGreen {
+  0%   { color: var(--color-green); }
+  100% { color: inherit; }
+}
+@keyframes flashRed {
+  0%   { color: var(--color-red); }
+  100% { color: inherit; }
+}

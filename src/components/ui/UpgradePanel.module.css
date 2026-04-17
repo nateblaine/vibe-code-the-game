@@ -1,0 +1,115 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: var(--gap-sm) var(--gap-md);
+  border-bottom: var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.tab {
+  font-family: var(--font-pixel);
+  font-size: 7px;
+  padding: 4px 8px;
+  background: transparent;
+  border: var(--border);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+
+.tab:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-bright);
+}
+
+.activeTab {
+  background: var(--color-accent-dim);
+  border-color: var(--color-accent);
+  color: var(--color-text-bright);
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--gap-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.item {
+  background: var(--color-bg-raised);
+  border: var(--border);
+  padding: var(--gap-sm) var(--gap-md);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.owned {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.locked {
+  opacity: 0.4;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--gap-sm);
+}
+
+.itemName {
+  font-size: 8px;
+  color: var(--color-text-bright);
+}
+
+.itemCost {
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.itemDesc {
+  font-size: 7.5px;
+  color: var(--color-text-dim);
+  line-height: 1.8;
+}
+
+.buyBtn {
+  font-family: var(--font-pixel);
+  font-size: 7px;
+  padding: 4px 10px;
+  background: var(--color-accent-dim);
+  border: 1px solid var(--color-accent);
+  color: var(--color-text-bright);
+  cursor: pointer;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.buyBtn:hover:not(:disabled) {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.buyBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.reqNote {
+  font-size: 7px;
+  color: var(--color-text-dim);
+  margin-top: 2px;
+}

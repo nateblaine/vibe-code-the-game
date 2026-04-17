@@ -1,0 +1,51 @@
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--gap-sm) var(--gap-lg);
+  border-bottom: var(--border-bright);
+  background: var(--color-bg-panel);
+  flex-shrink: 0;
+  gap: var(--gap-md);
+  flex-wrap: wrap;
+}
+
+.resources {
+  display: flex;
+  gap: var(--gap-lg);
+  flex-wrap: wrap;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  flex-shrink: 0;
+}
+
+.progressLabel {
+  font-size: 7px;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+}
+
+.progressBar {
+  width: 120px;
+  height: 8px;
+  background: var(--color-bg);
+  border: var(--border);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 1s linear;
+}
+
+.progressPct {
+  font-size: 8px;
+  color: var(--color-accent);
+  min-width: 40px;
+  text-align: right;
+}

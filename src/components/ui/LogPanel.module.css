@@ -1,0 +1,38 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-bg);
+  border: var(--border);
+}
+
+.header {
+  font-size: 7px;
+  color: var(--color-text-dim);
+  letter-spacing: 0.2em;
+  padding: 6px var(--gap-sm);
+  border-bottom: var(--border);
+  flex-shrink: 0;
+}
+
+.entries {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--gap-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.entry {
+  font-size: 7.5px;
+  display: flex;
+  gap: 4px;
+  line-height: 1.7;
+}
+
+.prefix {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
