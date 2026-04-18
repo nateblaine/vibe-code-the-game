@@ -55,6 +55,6 @@ export const PERSONAS: Persona[] = [
     weaknesses: [
       { type: 'multiplier', stat: 'hypeMultiplier', value: -0.20 },
     ],
-    startingPassive: 'Annual Contract Instinct — first B2B idea earns 25% more MRR',
+    startingPassive: 'Annual Contract Instinct — first B2B idea earns 25% more income per tick',
   },
 ];

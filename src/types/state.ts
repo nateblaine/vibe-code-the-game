@@ -91,7 +91,8 @@ export interface MetaBlock {
 
 export interface SettingsBlock {
   pauseOnEvent: boolean;     // default true; pause tick while event modal is open
-  autoAcceptEnabled: boolean; // unlocked by Auto-Triage Queue upgrade
+  autoAcceptEnabled: boolean; // true when Auto-Triage Queue is enabled in the UI
+  tooltipsEnabled: boolean; // global tooltip toggle for glossary/help text
 }
 
 // UI-only state (not persisted)
@@ -104,7 +105,7 @@ export interface UIState {
     skillIds: string[];
     ideaId: string | null;
   };
-  activeTab: 'ideas' | 'upgrades' | 'settings';
+  activeTab: 'ideas' | 'upgrades' | 'guide' | 'settings';
   upgradeCategory: string | null; // filter for upgrade panel
   isTickRunning: boolean;
 }

@@ -1,18 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useGameStore } from '../../hooks/useGameStore';
 import { hasSave } from '../../core/saveSystem';
 import { Button } from '../ui/Button';
+import { AsciiLogo } from '../ui/AsciiLogo';
 import styles from './StartScreen.module.css';
 
 export function StartScreen() {
   const setScreen = useGameStore(s => s.setScreen);
   const continueRun = useGameStore(s => s.continueRun);
   const newGame = useGameStore(s => s.newGame);
-  const [saveExists, setSaveExists] = useState(false);
-
-  useEffect(() => {
-    setSaveExists(hasSave());
-  }, []);
+  const [saveExists, setSaveExists] = useState(() => hasSave());
 
   function handleContinue() {
     const loaded = continueRun();
@@ -27,7 +24,7 @@ export function StartScreen() {
   return (
     <div className={styles.container}>
       <div className={styles.titleBlock}>
-        <div className={styles.title}>VIBE CODE</div>
+        <AsciiLogo />
         <div className={styles.subtitle}>THE VIDEO GAME</div>
         <div className={styles.tagline}>build the stack. ship the thing. reach $1,000,000.</div>
       </div>

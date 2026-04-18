@@ -1,0 +1,44 @@
+.panel {
+  height: 100%;
+  min-height: 0;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+}
+
+.sectionTitle {
+  font-size: 13.6px;
+  color: var(--color-accent);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemLabel {
+  font-size: 12.8px;
+  color: var(--color-text-bright);
+}
+
+.itemCopy {
+  font-size: 11.9px;
+  color: var(--color-text-dim);
+  line-height: 1.7;
+}

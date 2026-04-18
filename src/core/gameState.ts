@@ -88,6 +88,7 @@ export function createInitialState(config: RunConfig): GameState {
     settings: {
       pauseOnEvent: true,
       autoAcceptEnabled: false,
+      tooltipsEnabled: true,
     },
   };
 

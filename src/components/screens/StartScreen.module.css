@@ -13,23 +13,25 @@
   display: flex;
   flex-direction: column;
   gap: var(--gap-sm);
+  align-items: center;
 }
 
 .title {
-  font-size: 24px;
+  font-size: 40.8px;
   color: var(--color-accent);
   letter-spacing: 0.1em;
   text-shadow: 0 0 20px var(--color-accent-dim);
 }
 
 .subtitle {
-  font-size: 11px;
+  font-size: 18.7px;
   color: var(--color-text-dim);
   letter-spacing: 0.2em;
+  margin-top: var(--gap-md);
 }
 
 .tagline {
-  font-size: 8px;
+  font-size: 13.6px;
   color: var(--color-text-dim);
   margin-top: var(--gap-sm);
 }
@@ -38,11 +40,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--gap-sm);
-  width: 240px;
+  width: 280px;
 }
 
 .credits {
   position: fixed;
   bottom: var(--gap-md);
-  font-size: 7px;
+  font-size: 11.9px;
 }

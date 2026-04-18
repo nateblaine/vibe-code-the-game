@@ -1,5 +1,6 @@
 import { useGameStore } from '../../hooks/useGameStore';
 import { IDEAS } from '../../content/ideas';
+import { calcIncomePerTickFromMrr } from '../../core/formulas';
 import styles from './IdeaCard.module.css';
 
 const STAGE_COLORS = {
@@ -40,6 +41,7 @@ export function IdeaCard({ ideaId }: IdeaCardProps) {
   const progressInStage = idea.progress - prevThreshold;
   const stageRange = threshold - prevThreshold;
   const progressPct = Math.min(100, stageRange > 0 ? (progressInStage / stageRange) * 100 : 100);
+  const ideaIncomePerTick = idea.mrr > 0 ? calcIncomePerTickFromMrr(gameState, idea.mrr) : 0;
 
   return (
     <div className={styles.card}>
@@ -59,9 +61,9 @@ export function IdeaCard({ ideaId }: IdeaCardProps) {
 
       <div className={styles.statsRow}>
         <div className={styles.stat}>
-          <span className="text-dim">MRR</span>
+          <span className="text-dim">Income/tick</span>
           <span className="text-green">
-            {idea.mrr > 0 ? `$${idea.mrr.toFixed(0)}/mo` : '--'}
+            {ideaIncomePerTick > 0 ? `$${ideaIncomePerTick.toFixed(2)}` : '--'}
           </span>
         </div>
         <div className={styles.stat}>

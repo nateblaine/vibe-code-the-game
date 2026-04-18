@@ -4,6 +4,8 @@ import { STARTER_TOOLS } from '../../content/starterTools';
 import { SKILLS } from '../../content/skills';
 import { IDEAS } from '../../content/ideas';
 import { Button } from '../ui/Button';
+import { ModifierList } from '../ui/ModifierList';
+import { StatReferencePanel } from '../ui/StatReferencePanel';
 import type { RunSetupStep } from '../../types/state';
 import styles from './RunSetupScreen.module.css';
 
@@ -16,17 +18,16 @@ const STEP_LABELS: Record<RunSetupStep, string> = {
   confirm: '05 / Confirm',
 };
 
-function EffectList({ effects }: { effects: Array<{ type: string; stat: string; value: number }> }) {
-  return (
-    <ul className={styles.effectList}>
-      {effects.map((e, i) => {
-        const sign = e.value >= 0 ? '+' : '';
-        const pct = e.type === 'multiplier' ? `${sign}${(e.value * 100).toFixed(0)}% ${e.stat}` : `${sign}${e.value} ${e.stat}`;
-        const cls = e.value >= 0 ? 'text-green' : 'text-red';
-        return <li key={i} className={cls}>{pct}</li>;
-      })}
-    </ul>
-  );
+function sample<T>(items: T[], count = 1): T[] {
+  const copy = [...items];
+  const result: T[] = [];
+
+  while (copy.length > 0 && result.length < count) {
+    const index = Math.floor(Math.random() * copy.length);
+    result.push(copy.splice(index, 1)[0]);
+  }
+
+  return result;
 }
 
 export function RunSetupScreen() {
@@ -51,6 +52,14 @@ export function RunSetupScreen() {
     setStep(STEPS[stepIndex + 1]);
   }
 
+  function advanceFrom(currentStep: RunSetupStep) {
+    const currentIndex = STEPS.indexOf(currentStep);
+    const nextStep = STEPS[currentIndex + 1];
+    if (nextStep) {
+      setStep(nextStep);
+    }
+  }
+
   function handleStart() {
     if (!selections.personaId || !selections.toolId || selections.skillIds.length < 2 || !selections.ideaId) return;
     startRun({
@@ -59,6 +68,21 @@ export function RunSetupScreen() {
       skillIds: selections.skillIds,
       ideaId: selections.ideaId,
     });
+  }
+
+  function applyRandomLoadout() {
+    const [persona] = sample(PERSONAS);
+    const [tool] = sample(STARTER_TOOLS);
+    const randomSkills = sample(SKILLS, 2);
+    const [idea] = sample(IDEAS);
+
+    if (!persona || !tool || randomSkills.length < 2 || !idea) return;
+
+    setSelection('personaId', persona.id);
+    setSelection('toolId', tool.id);
+    setSelection('skillIds', randomSkills.map(skill => skill.id));
+    setSelection('ideaId', idea.id);
+    setStep('confirm');
   }
 
   const canAdvance = (() => {
@@ -74,6 +98,7 @@ export function RunSetupScreen() {
       <div className={styles.header}>
         <button className={styles.backBtn} onClick={goBack}>← back</button>
         <span className={styles.stepLabel}>{STEP_LABELS[step]}</span>
+        <button className={styles.randomBtn} onClick={applyRandomLoadout}>Random Loadout</button>
       </div>
 
       <div className={styles.content}>
@@ -83,12 +108,15 @@ export function RunSetupScreen() {
               <div
                 key={p.id}
                 className={[styles.card, selections.personaId === p.id ? styles.selected : ''].join(' ')}
-                onClick={() => setSelection('personaId', p.id)}
+                onClick={() => {
+                  setSelection('personaId', p.id);
+                  advanceFrom('persona');
+                }}
               >
                 <div className={styles.cardName}>{p.name}</div>
                 <div className={styles.cardTagline}>{p.tagline}</div>
                 <div className={styles.cardDesc}>{p.description}</div>
-                <EffectList effects={[...p.bonuses, ...p.weaknesses]} />
+                <ModifierList effects={[...p.bonuses, ...p.weaknesses]} />
                 {p.startingPassive && <div className={styles.passive}>{p.startingPassive}</div>}
               </div>
             ))}
@@ -101,12 +129,15 @@ export function RunSetupScreen() {
               <div
                 key={t.id}
                 className={[styles.card, selections.toolId === t.id ? styles.selected : ''].join(' ')}
-                onClick={() => setSelection('toolId', t.id)}
+                onClick={() => {
+                  setSelection('toolId', t.id);
+                  advanceFrom('tool');
+                }}
               >
                 <div className={styles.cardName}>{t.name}</div>
                 <div className={styles.cardTagline}>{t.tagline}</div>
                 <div className={styles.cardDesc}>{t.description}</div>
-                <EffectList effects={t.effects} />
+                <ModifierList effects={t.effects} />
               </div>
             ))}
           </div>
@@ -134,13 +165,17 @@ export function RunSetupScreen() {
                       if (isSelected) {
                         setSelection('skillIds', selections.skillIds.filter(id => id !== sk.id));
                       } else {
-                        setSelection('skillIds', [...selections.skillIds, sk.id]);
+                        const nextSkillIds = [...selections.skillIds, sk.id];
+                        setSelection('skillIds', nextSkillIds);
+                        if (nextSkillIds.length === 2) {
+                          advanceFrom('skills');
+                        }
                       }
                     }}
                   >
                     <div className={styles.cardName}>{sk.name}</div>
                     <div className={styles.cardDesc}>{sk.description}</div>
-                    <EffectList effects={sk.effects} />
+                    <ModifierList effects={sk.effects} />
                   </div>
                 );
               })}
@@ -154,7 +189,10 @@ export function RunSetupScreen() {
               <div
                 key={idea.id}
                 className={[styles.card, selections.ideaId === idea.id ? styles.selected : ''].join(' ')}
-                onClick={() => setSelection('ideaId', idea.id)}
+                onClick={() => {
+                  setSelection('ideaId', idea.id);
+                  advanceFrom('idea');
+                }}
               >
                 <div className={styles.cardName}>{idea.name}</div>
                 <div className={styles.cardTagline}>{idea.tagline}</div>
@@ -170,24 +208,28 @@ export function RunSetupScreen() {
         )}
 
         {step === 'confirm' && (
-          <div className={styles.confirm}>
-            <div className={styles.confirmRow}>
-              <span className="text-dim">Persona</span>
-              <span>{PERSONAS.find(p => p.id === selections.personaId)?.name}</span>
+          <div className={styles.confirmLayout}>
+            <div className={styles.confirm}>
+              <div className={styles.confirmRow}>
+                <span className={[styles.confirmLabel, 'text-dim'].join(' ')}>Persona</span>
+                <span className={styles.confirmValue}>{PERSONAS.find(p => p.id === selections.personaId)?.name}</span>
+              </div>
+              <div className={styles.confirmRow}>
+                <span className={[styles.confirmLabel, 'text-dim'].join(' ')}>Tool</span>
+                <span className={styles.confirmValue}>{STARTER_TOOLS.find(t => t.id === selections.toolId)?.name}</span>
+              </div>
+              <div className={styles.confirmRow}>
+                <span className={[styles.confirmLabel, 'text-dim'].join(' ')}>Skills</span>
+                <span className={styles.confirmValue}>{selections.skillIds.map(id => SKILLS.find(s => s.id === id)?.name).join(', ')}</span>
+              </div>
+              <div className={styles.confirmRow}>
+                <span className={[styles.confirmLabel, 'text-dim'].join(' ')}>First Idea</span>
+                <span className={styles.confirmValue}>{IDEAS.find(i => i.id === selections.ideaId)?.name}</span>
+              </div>
+              <div className={styles.startPrompt}>This screen is your briefing: build summary on the left, stat guide on the right.</div>
             </div>
-            <div className={styles.confirmRow}>
-              <span className="text-dim">Tool</span>
-              <span>{STARTER_TOOLS.find(t => t.id === selections.toolId)?.name}</span>
-            </div>
-            <div className={styles.confirmRow}>
-              <span className="text-dim">Skills</span>
-              <span>{selections.skillIds.map(id => SKILLS.find(s => s.id === id)?.name).join(', ')}</span>
-            </div>
-            <div className={styles.confirmRow}>
-              <span className="text-dim">First Idea</span>
-              <span>{IDEAS.find(i => i.id === selections.ideaId)?.name}</span>
-            </div>
-            <div className={styles.startPrompt}>Good luck. You are going to need it.</div>
+
+            <StatReferencePanel title="Run Briefing" />
           </div>
         )}
       </div>

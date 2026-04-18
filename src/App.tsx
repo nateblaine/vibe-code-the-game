@@ -3,6 +3,7 @@ import { useGameLoop } from './hooks/useGameLoop';
 import { StartScreen } from './components/screens/StartScreen';
 import { RunSetupScreen } from './components/screens/RunSetupScreen';
 import { MainDashboard } from './components/screens/MainDashboard';
+import { EndRunScreen } from './components/screens/EndRunScreen';
 
 export default function App() {
   const screen = useGameStore(s => s.ui.screen);
@@ -13,7 +14,7 @@ export default function App() {
   if (screen === 'start') return <StartScreen />;
   if (screen === 'run-setup') return <RunSetupScreen />;
   if (screen === 'game') return <MainDashboard />;
-  if (screen === 'end-run') return <div style={{ color: 'var(--color-yellow)', padding: '32px', fontSize: '10px' }}>End screen coming in Phase 7…</div>;
+  if (screen === 'end-run') return <EndRunScreen />;
 
   return null;
 }

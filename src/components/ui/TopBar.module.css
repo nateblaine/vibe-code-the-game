@@ -1,6 +1,6 @@
 .topBar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: var(--gap-sm) var(--gap-lg);
   border-bottom: var(--border-bright);
@@ -14,24 +14,53 @@
   display: flex;
   gap: var(--gap-lg);
   flex-wrap: wrap;
+  flex: 1 1 520px;
+}
+
+.statusRail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--gap-md);
+  flex-shrink: 0;
+}
+
+.clockCard,
+.eventCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 220px;
+  padding: 10px 12px;
+  background: var(--color-bg-raised);
+  border: var(--border);
+}
+
+.cardLabel,
+.progressLabel {
+  font-size: 11.9px;
+  color: var(--color-text-dim);
+  white-space: nowrap;
+}
+
+.clockValue,
+.eventValue {
+  font-size: 13.6px;
+  color: var(--color-text-bright);
+  line-height: 1.5;
 }
 
 .progress {
   display: flex;
   align-items: center;
   gap: var(--gap-sm);
-  flex-shrink: 0;
-}
-
-.progressLabel {
-  font-size: 7px;
-  color: var(--color-text-dim);
-  white-space: nowrap;
+  min-height: 100%;
 }
 
 .progressBar {
-  width: 120px;
-  height: 8px;
+  width: 180px;
+  height: 10px;
   background: var(--color-bg);
   border: var(--border);
   overflow: hidden;
@@ -44,8 +73,14 @@
 }
 
 .progressPct {
-  font-size: 8px;
+  font-size: 13.6px;
   color: var(--color-accent);
-  min-width: 40px;
+  min-width: 56px;
   text-align: right;
+}
+
+@media (max-width: 1200px) {
+  .statusRail {
+    justify-content: flex-start;
+  }
 }

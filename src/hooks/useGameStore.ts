@@ -30,6 +30,8 @@ interface GameStore {
   setUpgradeCategory: (cat: string | null) => void;
   setTickRunning: (running: boolean) => void;
   togglePauseOnEvent: () => void;
+  toggleAutoAccept: () => void;
+  toggleTooltips: () => void;
 }
 
 const DEFAULT_UI: UIState = {
@@ -45,6 +47,17 @@ const DEFAULT_UI: UIState = {
   upgradeCategory: null,
   isTickRunning: false,
 };
+
+function normalizeLoadedSettings(gameState: GameState): GameState {
+  return {
+    ...gameState,
+    settings: {
+      pauseOnEvent: gameState.settings.pauseOnEvent ?? true,
+      autoAcceptEnabled: gameState.settings.autoAcceptEnabled ?? false,
+      tooltipsEnabled: gameState.settings.tooltipsEnabled ?? true,
+    },
+  };
+}
 
 export const useGameStore = create<GameStore>((set, get) => ({
   gameState: null,
@@ -62,9 +75,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   continueRun: () => {
     const saved = loadGame();
     if (!saved) return false;
+    const normalized = normalizeLoadedSettings(saved);
+    const isEnded = !!normalized.meta.winCondition || !!normalized.meta.lossCondition;
     set({
-      gameState: saved,
-      ui: { ...DEFAULT_UI, screen: 'game', isTickRunning: true },
+      gameState: normalized,
+      ui: { ...DEFAULT_UI, screen: isEnded ? 'end-run' : 'game', isTickRunning: !isEnded },
     });
     return true;
   },
@@ -104,7 +119,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       eventId,
       choiceIndex,
       choice.logMessage,
-      choice.effects as any
+      choice.effects
     );
 
     set({ gameState: next });
@@ -149,6 +164,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(s => ({
       gameState: s.gameState
         ? { ...s.gameState, settings: { ...s.gameState.settings, pauseOnEvent: !s.gameState.settings.pauseOnEvent } }
+        : null,
+    })),
+  toggleAutoAccept: () =>
+    set(s => ({
+      gameState: s.gameState
+        ? { ...s.gameState, settings: { ...s.gameState.settings, autoAcceptEnabled: !s.gameState.settings.autoAcceptEnabled } }
+        : null,
+    })),
+  toggleTooltips: () =>
+    set(s => ({
+      gameState: s.gameState
+        ? { ...s.gameState, settings: { ...s.gameState.settings, tooltipsEnabled: !s.gameState.settings.tooltipsEnabled } }
         : null,
     })),
 }));

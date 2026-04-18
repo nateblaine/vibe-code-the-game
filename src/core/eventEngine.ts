@@ -4,9 +4,10 @@ import { EVENTS } from '../content/events';
 import { createRng, weightedPick } from './rng';
 
 // Minimum ticks between any player-facing events (30 seconds at 1 tick/sec)
-const MIN_EVENT_INTERVAL = 30;
+export const MIN_EVENT_INTERVAL = 30;
 // Maximum interval before an event is forced (90 seconds)
-const MAX_EVENT_INTERVAL = 90;
+export const MAX_EVENT_INTERVAL = 90;
+export const FIRST_EVENT_TICK = 15;
 
 function checkCondition(condition: TriggerCondition, state: GameState): boolean {
   const { type, key, value } = condition;
@@ -62,28 +63,51 @@ function isEligible(event: EventDefinition, state: GameState): boolean {
   return true;
 }
 
+export interface EventSchedule {
+  eligibleCount: number;
+  ticksUntilNextRoll: number;
+  ticksUntilForce: number;
+  nextRollAtTick: number;
+  forceAtTick: number;
+  isPending: boolean;
+  isRolling: boolean;
+}
+
+export function getEligibleEventCount(state: GameState): number {
+  if (state.pendingEvent !== null) return 0;
+  return EVENTS.filter(event => isEligible(event, state)).length;
+}
+
+export function getEventSchedule(state: GameState): EventSchedule {
+  const isFirstEvent = Object.keys(state.cooldowns).length === 0;
+  const lastEventTick = isFirstEvent ? 0 : Math.max(...Object.values(state.cooldowns));
+  const nextRollAtTick = isFirstEvent ? FIRST_EVENT_TICK : lastEventTick + MIN_EVENT_INTERVAL;
+  const forceAtTick = isFirstEvent ? FIRST_EVENT_TICK : lastEventTick + MAX_EVENT_INTERVAL;
+
+  return {
+    eligibleCount: getEligibleEventCount(state),
+    ticksUntilNextRoll: Math.max(0, nextRollAtTick - state.tickCount),
+    ticksUntilForce: Math.max(0, forceAtTick - state.tickCount),
+    nextRollAtTick,
+    forceAtTick,
+    isPending: state.pendingEvent !== null,
+    isRolling: state.tickCount >= nextRollAtTick,
+  };
+}
+
 // Returns the event ID to fire this tick, or null if no event should fire.
 export function rollForEvent(state: GameState): string | null {
   // Don't fire if another event is already pending
   if (state.pendingEvent !== null) return null;
 
-  // Determine if this tick should surface an event at all.
-  // Use a probability curve: low probability per tick, tuned so events land every 30-90s.
-  // At 1 tick/sec, 1/60 = ~1 event/minute on average (with spread).
-  const ticksSinceLast = state.tickCount - Math.max(...Object.values(state.cooldowns), -Infinity);
-  const isFirstEvent = Object.keys(state.cooldowns).length === 0;
-
-  // After 90 ticks with no event, force one
-  const forceEvent = isFirstEvent
-    ? state.tickCount >= 15 // first event happens quickly (at ~15 ticks)
-    : ticksSinceLast >= MAX_EVENT_INTERVAL;
-
-  // Otherwise random chance
-  const shouldRoll = forceEvent || Math.random() < (1 / MIN_EVENT_INTERVAL);
-  if (!shouldRoll) return null;
-
   const eligible = EVENTS.filter(e => isEligible(e, state));
   if (eligible.length === 0) return null;
+
+  const schedule = getEventSchedule(state);
+  if (state.tickCount < schedule.nextRollAtTick) return null;
+
+  const shouldRoll = state.tickCount >= schedule.forceAtTick || Math.random() < (1 / MIN_EVENT_INTERVAL);
+  if (!shouldRoll) return null;
 
   const rng = createRng(state.tickCount * 31337 + state.resources.cash);
   const weighted = eligible.map(e => ({ item: e, weight: e.weight }));

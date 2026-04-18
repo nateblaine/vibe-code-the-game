@@ -1,0 +1,31 @@
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+
+.inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.item {
+  font-size: 12.8px;
+  line-height: 1.5;
+}
+
+.good {
+  color: var(--color-green);
+}
+
+.bad {
+  color: var(--color-red);
+}
+
+.neutral {
+  color: var(--color-text-dim);
+}

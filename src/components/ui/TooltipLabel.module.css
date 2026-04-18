@@ -1,0 +1,35 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.trigger {
+  border-bottom: 1px dotted var(--color-border-bright);
+  cursor: help;
+}
+
+.tooltip {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  width: min(280px, 70vw);
+  padding: 10px 12px;
+  background: var(--color-bg-raised);
+  border: var(--border-bright);
+  color: var(--color-text);
+  font-size: 11.9px;
+  line-height: 1.6;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  z-index: 30;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.wrap:hover .tooltip,
+.wrap:focus-within .tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}

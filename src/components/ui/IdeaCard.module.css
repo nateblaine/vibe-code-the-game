@@ -12,15 +12,17 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: var(--gap-sm);
+  flex-wrap: wrap;
 }
 
 .name {
-  font-size: 9px;
+  font-size: 15.3px;
   color: var(--color-text-bright);
 }
 
 .stage {
-  font-size: 7px;
+  font-size: 11.9px;
   letter-spacing: 0.1em;
 }
 
@@ -31,7 +33,7 @@
 }
 
 .progressPct {
-  font-size: 7px;
+  font-size: 11.9px;
   color: var(--color-text-dim);
   min-width: 28px;
   text-align: right;
@@ -40,13 +42,14 @@
 .statsRow {
   display: flex;
   gap: var(--gap-md);
+  flex-wrap: wrap;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 8px;
+  font-size: 13.6px;
 }
 
 .capacityRow {
@@ -54,23 +57,25 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--gap-sm);
-  font-size: 8px;
+  font-size: 13.6px;
+  flex-wrap: wrap;
 }
 
 .capacityControls {
   display: flex;
   align-items: center;
   gap: var(--gap-sm);
+  flex-wrap: wrap;
 }
 
 .capacityBtn {
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   background: var(--color-bg-raised);
   border: var(--border-bright);
   color: var(--color-text-bright);
   font-family: var(--font-pixel);
-  font-size: 10px;
+  font-size: 17.0px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -94,22 +99,22 @@
 }
 
 .dotFilled {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   background: var(--color-accent);
   display: inline-block;
 }
 
 .dotEmpty {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   background: var(--color-bg);
   border: 1px solid var(--color-border-bright);
   display: inline-block;
 }
 
 .capacityCount {
-  font-size: 7px;
+  font-size: 11.9px;
   color: var(--color-text-dim);
   min-width: 28px;
 }

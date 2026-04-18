@@ -28,12 +28,13 @@
   border-bottom: var(--border);
   flex-shrink: 0;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .tab {
   font-family: var(--font-pixel);
-  font-size: 8px;
-  padding: 10px 16px;
+  font-size: 13.6px;
+  padding: 14px 18px;
   background: transparent;
   border: none;
   border-right: var(--border);
@@ -54,10 +55,45 @@
 }
 
 .capacityIndicator {
-  font-size: 7px;
+  font-size: 11.9px;
   color: var(--color-text-dim);
+  padding: 0 var(--gap-sm);
+}
+
+.eventStatus {
+  font-size: 11.9px;
+  color: var(--color-yellow);
+  padding: 0 var(--gap-sm);
+}
+
+.tabMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gap-xs);
   margin-left: auto;
-  padding: 0 var(--gap-md);
+  padding: 8px var(--gap-md);
+}
+
+.runControl {
+  font-family: var(--font-pixel);
+  font-size: 13.6px;
+  padding: 10px 14px;
+  border: var(--border);
+  background: var(--color-bg-raised);
+  cursor: pointer;
+}
+
+.runControlPlay {
+  color: var(--color-green);
+}
+
+.runControlPause {
+  color: var(--color-yellow);
+}
+
+.runControl:hover {
+  background: var(--color-bg-raised);
 }
 
 .tabContent {
@@ -67,10 +103,16 @@
   flex-direction: column;
 }
 
+.guideTab {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--gap-md);
+}
+
 /* Ideas tab */
 .ideasGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: var(--gap-md);
   padding: var(--gap-md);
   overflow-y: auto;
@@ -79,7 +121,7 @@
 
 /* Right rail */
 .rightRail {
-  width: 280px;
+  width: 340px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -97,28 +139,29 @@
 
 .settingRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--gap-md);
   padding: var(--gap-sm) 0;
   border-bottom: var(--border);
+  flex-wrap: wrap;
 }
 
 .settingLabel {
-  font-size: 9px;
+  font-size: 15.3px;
   color: var(--color-text-bright);
   margin-bottom: 2px;
 }
 
 .settingDesc {
-  font-size: 7.5px;
+  font-size: 12.8px;
   color: var(--color-text-dim);
   line-height: 1.8;
 }
 
 .toggle {
   font-family: var(--font-pixel);
-  font-size: 8px;
+  font-size: 13.6px;
   padding: 4px 10px;
   background: var(--color-bg-raised);
   border: var(--border-bright);
@@ -135,7 +178,7 @@
 
 .actionBtn {
   font-family: var(--font-pixel);
-  font-size: 8px;
+  font-size: 13.6px;
   padding: 5px 12px;
   background: var(--color-bg-raised);
   border: var(--border-bright);

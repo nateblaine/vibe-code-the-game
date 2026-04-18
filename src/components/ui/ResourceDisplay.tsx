@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+import { TooltipLabel } from './TooltipLabel';
 import styles from './ResourceDisplay.module.css';
 
 interface ResourceDisplayProps {
@@ -7,6 +8,7 @@ interface ResourceDisplayProps {
   format?: 'currency' | 'number' | 'percent' | 'rate';
   color?: 'default' | 'green' | 'yellow' | 'red' | 'accent' | 'purple';
   warning?: boolean;
+  tooltip?: string;
 }
 
 function formatValue(value: number, format: ResourceDisplayProps['format']): string {
@@ -18,13 +20,13 @@ function formatValue(value: number, format: ResourceDisplayProps['format']): str
     case 'percent':
       return `${Math.floor(value)}%`;
     case 'rate':
-      return `${value >= 0 ? '+' : ''}${value.toFixed(1)}/s`;
+      return `${value >= 0 ? '+' : ''}${value.toFixed(1)}/tick`;
     default:
       return Math.floor(value).toString();
   }
 }
 
-export function ResourceDisplay({ label, value, format = 'number', color = 'default', warning = false }: ResourceDisplayProps) {
+export function ResourceDisplay({ label, value, format = 'number', color = 'default', warning = false, tooltip }: ResourceDisplayProps) {
   const prevValueRef = useRef(value);
   const [flashClass, setFlashClass] = useState('');
 
@@ -42,7 +44,9 @@ export function ResourceDisplay({ label, value, format = 'number', color = 'defa
 
   return (
     <div className={styles.resource}>
-      <span className={styles.label}>{label}</span>
+      <TooltipLabel tooltip={tooltip} className={styles.label}>
+        {label}
+      </TooltipLabel>
       <span className={[styles.value, colorClass, flashClass].join(' ')}>
         {formatValue(value, format)}
       </span>

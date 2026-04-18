@@ -44,11 +44,15 @@ function collectModifiers(state: GameState): StatModifier[] {
 
   for (const mod of state.temporaryModifiers) {
     if (mod.expiresAtTick === null || mod.expiresAtTick > state.tickCount) {
-      mods.push({ type: mod.type, stat: mod.stat as any, value: mod.value });
+      mods.push({ type: mod.type, stat: mod.stat as StatModifier['stat'], value: mod.value });
     }
   }
 
   return mods;
+}
+
+export function getStatMultiplier(state: GameState, stat: string, base = 1): number {
+  return applyModifiers(base, stat, collectModifiers(state));
 }
 
 // Apply all modifiers for a given stat to a base value.
@@ -81,14 +85,23 @@ export function calcDerived(state: GameState): DerivedBlock {
   const automationLevel = Math.max(0, applyModifiers(BASE.automationLevel, 'automationLevel', mods));
   const stability = Math.max(0, Math.min(2, applyModifiers(BASE.stability, 'stability', mods)));
   const hypeMultiplier = Math.max(0.1, applyModifiers(BASE.hypeMultiplier, 'hypeMultiplier', mods));
+  const computeEfficiency = Math.max(0.25, applyModifiers(1.0, 'computeEfficiency', mods));
+  const totalAssignedCapacity = state.activeIdeaIds.reduce(
+    (sum, ideaId) => sum + (state.ideas[ideaId]?.assignedCapacity ?? 0),
+    0
+  );
 
-  // Burn rate: base + cost from active ideas' compute use + upgrades
-  let burnRate = applyModifiers(BASE.burnRate, 'burnRate', mods);
+  // Burn rate only exists when capacity is actually allocated.
+  // If nothing is running, the player should not bleed cash.
+  let burnRate = 0;
+  if (totalAssignedCapacity > 0) {
+    burnRate = applyModifiers(BASE.burnRate, 'burnRate', mods);
+  }
   // Each active idea adds burn proportional to assigned capacity
   for (const ideaId of state.activeIdeaIds) {
     const idea = state.ideas[ideaId];
     if (idea && idea.assignedCapacity > 0) {
-      burnRate += idea.assignedCapacity * 0.5;
+      burnRate += (idea.assignedCapacity * 0.5) / computeEfficiency;
     }
   }
   burnRate = Math.max(0, burnRate);
@@ -100,7 +113,7 @@ export function calcDerived(state: GameState): DerivedBlock {
   for (const ideaId of state.activeIdeaIds) {
     const idea = state.ideas[ideaId];
     if (idea && idea.mrr > 0 && idea.stage !== 'concept' && idea.stage !== 'prototype') {
-      incomePerTick += idea.mrr / 300;
+      incomePerTick += calcIncomePerTickFromMrr(state, idea.mrr);
     }
   }
 
@@ -134,6 +147,17 @@ export function calcIdeaProgressPerTick(
   const mods = collectModifiers(state);
   const multiplier = applyModifiers(1.0, 'ideaProgress', mods);
   return idea.assignedCapacity * progressPerCapacity * multiplier;
+}
+
+export function calcIncomePerTickFromMrr(state: GameState, mrr: number): number {
+  const mods = collectModifiers(state);
+  const directMonetization = Math.max(0.1, applyModifiers(1.0, 'directMonetization', mods));
+  return (mrr / 300) * directMonetization;
+}
+
+export function calcUpgradeCost(state: GameState, baseCost: number): number {
+  const discountMultiplier = Math.max(0.5, getStatMultiplier(state, 'upgradeDiscount', 1.0));
+  return Math.max(0, Math.ceil(baseCost * (2 - discountMultiplier)));
 }
 
 // Check if the win condition is met

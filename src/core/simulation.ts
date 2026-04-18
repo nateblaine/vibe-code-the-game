@@ -2,10 +2,11 @@
 // No React, no side effects, no randomness outside of eventEngine.
 
 import type { GameState, LogEntry } from '../types/state';
-import type { IdeaStage } from '../types/content';
+import type { EventChoice, IdeaStage } from '../types/content';
+import { EVENTS } from '../content/events';
 import { IDEAS } from '../content/ideas';
 import { UPGRADES } from '../content/upgrades';
-import { calcDerived, calcIdeaProgressPerTick, calcQualityMultiplier } from './formulas';
+import { calcDerived, calcIdeaProgressPerTick, calcQualityMultiplier, calcUpgradeCost, calcIncomePerTickFromMrr, getStatMultiplier } from './formulas';
 import { checkIdeaStageAdvance, checkWin, checkSoftLoss } from './progression';
 import { rollForEvent } from './eventEngine';
 import { saveGame } from './saveSystem';
@@ -32,6 +33,85 @@ function debtFocusPenalty(technicalDebt: number): number {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
+}
+
+function applyReputationDelta(state: GameState, delta: number): number {
+  if (delta <= 0) return delta;
+  return delta * getStatMultiplier(state, 'reputationGain', 1.0);
+}
+
+function applyPermanentModifier(state: GameState, eventId: string, stat: string, value: number) {
+  state.temporaryModifiers = [
+    ...state.temporaryModifiers,
+    {
+      id: `${eventId}-${stat}-${state.tickCount}-${state.temporaryModifiers.length}`,
+      stat,
+      type: 'flat',
+      value,
+      expiresAtTick: null,
+      source: eventId,
+    },
+  ];
+}
+
+function scoreEventChoice(choice: EventChoice): number {
+  let score = 0;
+
+  for (const effect of choice.effects) {
+    const weight = (() => {
+      switch (effect.stat) {
+        case 'cash':
+          return 1 / 50;
+        case 'compute':
+          return 1 / 4;
+        case 'focus':
+          return 1.5;
+        case 'reputation':
+          return 2;
+        case 'technicalDebt':
+          return -1.8;
+        case 'burnRate':
+          return -12;
+        case 'stability':
+          return 40;
+        case 'automationLevel':
+          return 25;
+        case 'qualityMultiplier':
+          return 50;
+        case 'directMonetization':
+          return 45;
+        case 'ideaProgress':
+          return 45;
+        case 'hypeMultiplier':
+          return 30;
+        default:
+          return effect.type === 'multiplier' ? 25 : 8;
+      }
+    })();
+
+    score += effect.type === 'multiplier' ? effect.value * weight * 100 : effect.value * weight;
+  }
+
+  return score;
+}
+
+function autoResolveEvent(state: GameState, eventId: string): GameState {
+  const event = EVENTS.find(candidate => candidate.id === eventId);
+  if (!event) return state;
+
+  let bestChoiceIndex = 0;
+  let bestScore = -Infinity;
+
+  event.choices.forEach((choice, index) => {
+    const score = scoreEventChoice(choice);
+    if (score > bestScore) {
+      bestScore = score;
+      bestChoiceIndex = index;
+    }
+  });
+
+  const choice = event.choices[bestChoiceIndex];
+  return applyEventChoice(state, eventId, bestChoiceIndex, choice.logMessage, choice.effects);
 }
 
 export function tick(state: GameState): GameState {
@@ -73,10 +153,11 @@ export function tick(state: GameState): GameState {
       if (newStage === 'launch') {
         idea.mrr = ideaDef.mrrAtLaunch;
         idea.quality = clamp(qualityMult, 0.5, 2);
-        s.resources.reputation += 5;
+        s.resources.reputation += applyReputationDelta(s, 5);
+        const launchIncomePerTick = calcIncomePerTickFromMrr(s, idea.mrr);
         newLog.push({
           tick: s.tickCount,
-          message: `${ideaDef.name} reached Launch stage. MRR: $${idea.mrr.toFixed(0)}/mo`,
+          message: `${ideaDef.name} reached Launch stage. Income: $${launchIncomePerTick.toFixed(2)}/tick`,
           type: 'milestone',
         });
       } else if (newStage === 'growth') {
@@ -89,15 +170,16 @@ export function tick(state: GameState): GameState {
     }
 
     // MRR growth in live stages
-    const mrrGrowthRate = STAGE_MRR_GROWTH[idea.stage];
+    const mrrGrowthRate = STAGE_MRR_GROWTH[idea.stage] * s.derived.hypeMultiplier;
     if (mrrGrowthRate > 0) {
       idea.mrr *= (1 + mrrGrowthRate);
     }
 
     // Passive income from MRR (per tick, see formula comment in formulas.ts)
     if (idea.mrr > 0 && idea.stage !== 'concept' && idea.stage !== 'prototype') {
-      s.resources.cash += idea.mrr / 300;
-      s.meta.totalEarned += idea.mrr / 300;
+      const incomePerTick = calcIncomePerTickFromMrr(s, idea.mrr);
+      s.resources.cash += incomePerTick;
+      s.meta.totalEarned += incomePerTick;
     }
 
     // Maintenance load
@@ -114,10 +196,11 @@ export function tick(state: GameState): GameState {
 
   // 6. Technical debt
   let debtGain = 0;
+  const debtGainMultiplier = Math.max(0, getStatMultiplier(s, 'debtGainRate', 1.0));
   for (const ideaId of s.activeIdeaIds) {
     const ideaDef = IDEAS.find(i => i.id === ideaId);
     if (ideaDef && s.ideas[ideaId]?.assignedCapacity > 0) {
-      debtGain += ideaDef.debtGainRate;
+      debtGain += ideaDef.debtGainRate * debtGainMultiplier;
     }
   }
   s.resources.technicalDebt = clamp(s.resources.technicalDebt + debtGain, 0, 100);
@@ -141,27 +224,25 @@ export function tick(state: GameState): GameState {
   // Natural focus regeneration (slow)
   s.resources.focus = clamp(s.resources.focus + 0.02, 0, 100);
 
-  // 8. Check for unlocks / milestone triggers
-  // Unlock auto-accept when auto-triage-queue is owned
-  if (s.upgradesOwned.includes('auto-triage-queue') && !s.settings.autoAcceptEnabled) {
-    s.settings = { ...s.settings, autoAcceptEnabled: true };
-    newLog.push({
-      tick: s.tickCount,
-      message: 'Auto-Triage Queue active. Event auto-accept is now available in Settings.',
-      type: 'upgrade',
-    });
-  }
-
-  // 9. Roll for event
+  // 8. Roll for event
   if (s.pendingEvent === null) {
     const eventId = rollForEvent(s);
     if (eventId) {
       s.pendingEvent = eventId;
       s.cooldowns = { ...s.cooldowns, [eventId]: s.tickCount };
+      newLog.push({
+        tick: s.tickCount,
+        message: `Event queued: ${EVENTS.find(event => event.id === eventId)?.title ?? eventId}`,
+        type: 'event',
+      });
+
+      if (s.settings.autoAcceptEnabled) {
+        s = autoResolveEvent(s, eventId);
+      }
     }
   }
 
-  // Check win / loss
+  // 9. Check win / loss
   if (!s.meta.winCondition && checkWin(s)) {
     s.meta.winCondition = 'million';
     newLog.push({ tick: s.tickCount, message: 'WIN CONDITION MET — $1,000,000', type: 'milestone' });
@@ -177,7 +258,7 @@ export function tick(state: GameState): GameState {
   // Append new log entries
   if (newLog.length > 0) {
     // Keep log capped at 200 entries
-    s.log = [...newLog, ...state.log].slice(0, 200);
+    s.log = [...newLog, ...s.log].slice(0, 200);
   }
 
   // 10. Auto-save every N ticks
@@ -197,24 +278,27 @@ export function applyEventChoice(
   logMessage: string,
   effects: Array<{ type: 'flat' | 'multiplier'; stat: string; value: number }>
 ): GameState {
-  let s: GameState = { ...state };
+  const s: GameState = { ...state };
   s.resources = { ...state.resources };
+  s.meta = { ...state.meta };
   s.eventHistory = [...state.eventHistory, eventId];
   s.pendingEvent = null;
+  s.temporaryModifiers = [...state.temporaryModifiers];
 
   for (const effect of effects) {
     if (effect.type === 'flat') {
       const res = s.resources as unknown as Record<string, number>;
       if (effect.stat in res) {
-        res[effect.stat] = (res[effect.stat] ?? 0) + effect.value;
+        const delta = effect.stat === 'reputation' ? applyReputationDelta(s, effect.value) : effect.value;
+        res[effect.stat] = (res[effect.stat] ?? 0) + delta;
+      } else {
+        applyPermanentModifier(s, eventId, effect.stat, effect.value);
       }
-      // Handle derived-affecting stats that are flat applied to resources
-      // (qualityMultiplier / ideaProgress flat effects are handled differently — ignored here for now)
     }
     // Multiplier effects from events are applied as temporary modifiers (30-tick duration)
     if (effect.type === 'multiplier') {
       s.temporaryModifiers = [
-        ...state.temporaryModifiers,
+        ...s.temporaryModifiers,
         {
           id: `${eventId}-choice${choiceIndex}-${s.tickCount}`,
           stat: effect.stat,
@@ -245,7 +329,8 @@ export function applyEventChoice(
 export function applyUpgradePurchase(state: GameState, upgradeId: string): GameState {
   const upgrade = UPGRADES.find(u => u.id === upgradeId);
   if (!upgrade) return state;
-  if (state.resources.cash < upgrade.cost) return state;
+  const actualCost = calcUpgradeCost(state, upgrade.cost);
+  if (state.resources.cash < actualCost) return state;
   if (state.upgradesOwned.includes(upgradeId)) return state;
 
   // Check requirements
@@ -255,11 +340,14 @@ export function applyUpgradePurchase(state: GameState, upgradeId: string): GameS
     }
   }
 
-  let s: GameState = { ...state };
-  s.resources = { ...state.resources, cash: state.resources.cash - upgrade.cost };
+  const s: GameState = { ...state };
+  s.resources = { ...state.resources, cash: state.resources.cash - actualCost };
   s.upgradesOwned = [...state.upgradesOwned, upgradeId];
   s.log = [
-    { tick: s.tickCount, message: `Purchased: ${upgrade.name}`, type: 'upgrade' as const },
+    { tick: s.tickCount, message: `Purchased: ${upgrade.name} for $${actualCost.toLocaleString()}`, type: 'upgrade' as const },
+    ...(upgrade.id === 'auto-triage-queue'
+      ? [{ tick: s.tickCount, message: 'Auto-Triage Queue unlocked in Settings.', type: 'upgrade' as const }]
+      : []),
     ...state.log,
   ].slice(0, 200);
   s.derived = calcDerived(s);

@@ -36,7 +36,7 @@ export function checkWin(state: GameState): boolean {
 // Check for soft-loss conditions.
 // Returns the condition type or null if game is fine.
 export function checkSoftLoss(state: GameState): 'burn' | 'reputation' | 'focus' | null {
-  if (state.meta.burnWarningTicks >= 60) return 'burn';
+  if (state.resources.cash <= 0) return 'burn';
   if (state.resources.reputation <= -20) return 'reputation';
   if (state.resources.focus <= 0) return 'focus';
   return null;
